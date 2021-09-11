@@ -9,9 +9,20 @@ window.simpleTrack = (function () {
         nv = wn.navigator,
         sc = screen,
         config = {},
-        url = wn.location.protocol + '//' + wn.location.hostname + (wn.location.port ? ':' + wn.location.port : '') + '/api/tracker';
+        urlDomain = wn.location.protocol + '//' + wn.location.hostname + (wn.location.port ? ':' + wn.location.port : ''),
+        url = urlDomain + '/api/tracker',
+        urlTrackerLinks = urlDomain + '/api/trackerLinks';
     // url = 'http://127.0.0.1:8000/api/tracker';
     // url = 'http://localhost/website-analytics/index.php';
+
+    //  function to generate UID
+    function randomUid() {
+        var timestamp = (new Date()).getTime().toString(36);
+        var random1 = Math.floor(Math.random() * 0x7fffffff).toString(36);
+        var random2 = Math.floor(Math.random() * 0x7fffffff).toString(36);
+
+        return [timestamp, random1, random2].join('');
+    }
 
     //  function to get device from width
     function getDevice(ua) {
@@ -102,7 +113,8 @@ window.simpleTrack = (function () {
 
         device.push({
             deviceWidth: sc.width || null,
-            deviceHeight: sc.height || null
+            deviceHeight: sc.height || null,
+            deviceColorDepth: sc.colorDepth || null
         });
 
         return device;
@@ -155,11 +167,16 @@ window.simpleTrack = (function () {
                     anchors[z].onclick = function () {
                         config = {};
                         config.clickedURL = [{
+                            id: trackid,
                             url: isAbsoluteRelative(this.href),
                             isExternal: checkForExternalLinks(isAbsoluteRelative(this.href)),
+                            device: getDevice(sc),
+                            referrer: dc.referrer || '',
+                            operatingSystem: getOSDetails(),
                             time: Math.floor(Date.now() / 1000)
                         }];
-                        sendData(url, config);
+                        console.log(config);
+                        // sendData(urlTrackerLinks, config);
                     }
                 }
             }
