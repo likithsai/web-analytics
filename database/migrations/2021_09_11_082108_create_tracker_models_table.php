@@ -23,6 +23,7 @@ class CreateTrackerModelsTable extends Migration
             $table->string('tracker_charset');
             $table->string('tracker_device');
             $table->string('tracker_useragent');
+            $table->string('tracker_referrer');
             $table->string('tracker_os');
             $table->string('tracker_loadtime');
             $table->string('tracker_internalLinks');

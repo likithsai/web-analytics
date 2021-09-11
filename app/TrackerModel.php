@@ -17,6 +17,7 @@ class TrackerModel extends Model
         'tracker_charset',
         'tracker_device',
         'tracker_useragent',
+        'tracker_referrer',
         'tracker_os',
         'tracker_loadtime',
         'tracker_internalLinks',

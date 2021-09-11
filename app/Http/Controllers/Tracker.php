@@ -22,6 +22,7 @@ class Tracker extends Controller
             $tracker->tracker_charset = json_decode($res, true)["charSet"];
             $tracker->tracker_device = json_encode(json_decode($res, true)["device"]);
             $tracker->tracker_useragent = json_decode($res, true)["userAgent"];
+            $tracker->tracker_referrer = json_decode($res, true)["referrer"];
             $tracker->tracker_os = json_decode($res, true)["operatingSystem"];
             $tracker->tracker_loadtime = json_decode($res, true)["timeTakenToLoad"];
             $tracker->tracker_internalLinks = json_encode(json_decode($res, true)["internalLinks"]);

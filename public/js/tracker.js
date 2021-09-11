@@ -132,6 +132,7 @@ window.simpleTrack = (function () {
         config.charSet = dc.characterSet || dc.charset;
         config.device = getDevice(sc);
         config.userAgent = nv.userAgent;
+        config.referrer = dc.referrer || '';
         config.operatingSystem = getOSDetails();
         config.timeTakenToLoad = parseFloat(wn.performance.now());
         config.internalLinks = getAllLinks();
