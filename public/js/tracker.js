@@ -1,6 +1,8 @@
 //  simpleTracker.js
 //  V 1.0.0
-window.simpleTrack = (function () {
+
+var simpleTrack = (window.simpleTrack) ? window.simpleTrack : {};
+simpleTrack = (function () {
     'use strict';
 
     var md = {},
@@ -14,6 +16,38 @@ window.simpleTrack = (function () {
         urlTrackerLinks = urlDomain + '/api/trackerLinks';
     // url = 'http://127.0.0.1:8000/api/tracker';
     // url = 'http://localhost/website-analytics/index.php';
+
+    //  function to get referrer
+    function getReferrer() {
+        var referrer = '';
+
+        try {
+            referrer = wn.top.document.referrer;
+        } catch (e) {
+            if (wn.parent) {
+                try {
+                    referrer = wn.parent.document.referrer;
+                } catch (e2) {
+                    referrer = '';
+                }
+            }
+        }
+
+        if (referrer === '') {
+            referrer = dc.referrer;
+        }
+
+        return referrer;
+    }
+
+    //  function to print message to console
+    function logConsoleError(message) {
+        // needed to write it this way for jslint
+        var consoleType = typeof console;
+        if (consoleType !== 'undefined' && console && console.error) {
+            console.warn(message);
+        }
+    }
 
     //  function to generate UID
     function randomUid() {
@@ -45,7 +79,14 @@ window.simpleTrack = (function () {
 
     //  custom event listener function
     function eventListener(element, event, callback) {
-        element.addEventListener(event, callback, true);
+        if (element.addEventListener) {
+            element.addEventListener(event, callback, false);
+            return true;
+        } else if (element.attachEvent) {
+            return element.attachEvent('on' + event, callback);
+        } else {
+            element['on' + eventType] = eventHandler;
+        }
     }
 
     //  function to check for external link
@@ -144,9 +185,10 @@ window.simpleTrack = (function () {
         config.charSet = dc.characterSet || dc.charset;
         config.device = getDevice(sc);
         config.userAgent = nv.userAgent;
-        config.referrer = dc.referrer || '';
+        config.referrer = getReferrer();
         config.operatingSystem = getOSDetails();
-        config.timeTakenToLoad = parseFloat(wn.performance.now());
+        // config.timeTakenToLoad = parseFloat(wn.performance.now());
+        config.timeTakenToLoad = parseFloat(wn.performance.now() || wn.performance.mozNow() || wn.performance.msNow() || wn.performance.oNow() || wn.performance.webkitNow());
         config.internalLinks = getAllLinks();
         config.lastModified = dc.lastModified;
         config.time = Math.floor(Date.now() / 1000);
@@ -183,6 +225,10 @@ window.simpleTrack = (function () {
         }
 
         eventListener(wn, "DOMContentLoaded", track(trackid, callback, props));
+        eventListener(wn, 'focus', function() { 
+            logConsoleError('focused');
+        });
+        
         // wn.addEventListener("DOMContentLoaded", track(trackid, callback, props));
     }
 
