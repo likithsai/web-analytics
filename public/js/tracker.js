@@ -2,6 +2,13 @@
 //  Simple web tracker analytics
 //  V 1.0.0
 
+//  Analytics reference
+//  https://www.optimizesmart.com/event-tracking-guide-google-analytics-simplified-version/
+//  https://www.optimizesmart.com/understanding-channels-in-google-analytics/
+//  https://www.optimizesmart.com/custom-campaigns-google-analytics-complete-guide/
+//  https://www.optimizesmart.com/virtual-pageviews-google-analytics-complete-guide/
+//  https://www.optimizesmart.com/understanding-universal-analytics-measurement-protocol/
+
 var simpleTrack = (window.simpleTrack) ? window.simpleTrack : {};
 simpleTrack = (function () {
     'use strict';
@@ -14,7 +21,27 @@ simpleTrack = (function () {
         sc = screen,
         config = {},
         urlDomain = wn.location.protocol + '//' + wn.location.hostname + (wn.location.port ? ':' + wn.location.port : ''),
-        url = urlDomain + '/api/tracker';
+        url = urlDomain + '/api/tracker', //  URL Alias
+        sendDataInterval = 60000; //  1min interval time
+
+
+    //  function to set tracker cookie
+    function setTrackerCookie(name, value, expires) {
+        var expires = "";
+        if (expires) {
+            var date = new Date();
+            date.setTime(date.getTime() + (expires * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        dc.cookie = name + "=" + (value || "") + expires + "; path=/";
+    }
+
+    //  function to get tracker cookie
+    function getTrackerCookie(cookieName) {
+        var match = dc.cookie.match(RegExp('(?:^|;\\s*)' + cookieName + '=([^;]*)'));
+        return match ? match[1] : null;
+    }
+
 
     //  function to get referrer
     function getReferrer() {
@@ -79,13 +106,14 @@ simpleTrack = (function () {
     //  custom event listener function
     function eventListener(element, event, callback) {
         if (element.addEventListener) {
-            element.addEventListener(event, callback, false);
+            element.addEventListener(event, callback);
             return true;
         } else if (element.attachEvent) {
             return element.attachEvent('on' + event, callback);
-        } else {
-            element['on' + eventType] = eventHandler;
         }
+        // } else {
+        //     element['on' + event] = callback;
+        // }
     }
 
     //  function to check for external link
@@ -181,6 +209,10 @@ simpleTrack = (function () {
     }
 
     function track(id, callback) {
+        if (getTrackerCookie('tracker_session') === null) {
+            setTrackerCookie('tracker_session', randomUid(), 1);
+        }
+
         config = {};
         config.id = id;
         config.eventType = 'Loaded';
@@ -199,6 +231,10 @@ simpleTrack = (function () {
 
         // sendData(url, config);
         log.push(config);
+
+        setInterval(function () {
+            console.log(log);
+        }, sendDataInterval);
 
         if (callback && typeof (callback) === "function") {
             callback();
@@ -228,13 +264,14 @@ simpleTrack = (function () {
                     }
                 }
             }
+
+            //  check if trackForm is enabled or not
+            if (props.trackForm) {
+                
+            }
         }
 
         eventListener(wn, "DOMContentLoaded", track(trackid, callback, props));
-        eventListener(wn, 'focus', function (e) {
-            console.log(log);
-        });
-        // wn.addEventListener("DOMContentLoaded", track(trackid, callback, props));
     }
 
     //  function to create events
