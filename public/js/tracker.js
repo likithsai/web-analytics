@@ -1,4 +1,5 @@
 //  simpleTracker.js
+//  Simple web tracker analytics
 //  V 1.0.0
 
 var simpleTrack = (window.simpleTrack) ? window.simpleTrack : {};
@@ -6,16 +7,14 @@ simpleTrack = (function () {
     'use strict';
 
     var md = {},
+        log = [],
         dc = document,
         wn = window,
         nv = wn.navigator,
         sc = screen,
         config = {},
         urlDomain = wn.location.protocol + '//' + wn.location.hostname + (wn.location.port ? ':' + wn.location.port : ''),
-        url = urlDomain + '/api/tracker',
-        urlTrackerLinks = urlDomain + '/api/trackerLinks';
-    // url = 'http://127.0.0.1:8000/api/tracker';
-    // url = 'http://localhost/website-analytics/index.php';
+        url = urlDomain + '/api/tracker';
 
     //  function to get referrer
     function getReferrer() {
@@ -59,7 +58,7 @@ simpleTrack = (function () {
     }
 
     //  function to get device from width
-    function getDevice(ua) {
+    function getDeviceType(ua) {
         var device = "";
         if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
             device = "tablet";
@@ -153,8 +152,9 @@ simpleTrack = (function () {
         var device = [];
 
         device.push({
-            deviceWidth: sc.width || null,
-            deviceHeight: sc.height || null,
+            deviceType: getDeviceType(nv.userAgent),
+            deviceOperatingSystem: getOSDetails(),
+            deviceResolution: parseInt(sc.width, 10) + "X" + parseInt(sc.height, 10),
             deviceColorDepth: sc.colorDepth || null
         });
 
@@ -162,23 +162,28 @@ simpleTrack = (function () {
     }
 
     function sendData(url, data) {
-
         var request = wn.XMLHttpRequest ? new wn.XMLHttpRequest() : wn.ActiveXObject ? new ActiveXObject('Microsoft.XMLHTTP') : null;
         request.open('POST', url);
         request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+        request.withCredentials = true;
         request.send(JSON.stringify(data));
 
         request.onreadystatechange = function () {
             if (request.readyState == 4 && request.status == 200) {
-                console.log(request.responseText);
+                // console.log(request.responseText);
             }
         };
 
     }
 
+    function getPerformanceTiming() {
+        return (typeof wn.performance.timing === 'object') && wn.performance.timing ? wn.performance.timing : undefined;
+    }
+
     function track(id, callback) {
         config = {};
         config.id = id;
+        config.eventType = 'Loaded';
         config.url = wn.location.href;
         config.title = dc.title;
         config.domain = dc.domain;
@@ -186,14 +191,14 @@ simpleTrack = (function () {
         config.device = getDevice(sc);
         config.userAgent = nv.userAgent;
         config.referrer = getReferrer();
-        config.operatingSystem = getOSDetails();
-        // config.timeTakenToLoad = parseFloat(wn.performance.now());
-        config.timeTakenToLoad = parseFloat(wn.performance.now() || wn.performance.mozNow() || wn.performance.msNow() || wn.performance.oNow() || wn.performance.webkitNow());
+        config.timing = getPerformanceTiming();
+        // config.timeTakenToLoad = parseFloat(wn.performance.now() || wn.performance.mozNow() || wn.performance.msNow() || wn.performance.oNow() || wn.performance.webkitNow());
         config.internalLinks = getAllLinks();
         config.lastModified = dc.lastModified;
         config.time = Math.floor(Date.now() / 1000);
 
-        sendData(url, config);
+        // sendData(url, config);
+        log.push(config);
 
         if (callback && typeof (callback) === "function") {
             callback();
@@ -208,27 +213,27 @@ simpleTrack = (function () {
                 for (var z = 0; z < anchors.length; z++) {
                     anchors[z].onclick = function () {
                         config = {};
-                        config.clickedURL = [{
-                            id: trackid,
-                            url: isAbsoluteRelative(this.href),
-                            isExternal: checkForExternalLinks(isAbsoluteRelative(this.href)),
-                            device: getDevice(sc),
-                            referrer: dc.referrer || '',
-                            operatingSystem: getOSDetails(),
-                            time: Math.floor(Date.now() / 1000)
-                        }];
-                        console.log(config);
-                        // sendData(urlTrackerLinks, config);
+                        config.id = trackid;
+                        config.eventType = wn.event.type;
+                        config.url = isAbsoluteRelative(this.href);
+                        config.isExternal = checkForExternalLinks(isAbsoluteRelative(this.href));
+                        config.domain = dc.domain;
+                        config.device = getDevice(sc);
+                        config.userAgent = nv.userAgent;
+                        config.referrer = dc.referrer || '';
+                        config.timing = getPerformanceTiming();
+                        config.time = Math.floor(Date.now() / 1000);
+
+                        log.push(config);
                     }
                 }
             }
         }
 
         eventListener(wn, "DOMContentLoaded", track(trackid, callback, props));
-        eventListener(wn, 'focus', function() { 
-            logConsoleError('focused');
+        eventListener(wn, 'focus', function (e) {
+            console.log(log);
         });
-        
         // wn.addEventListener("DOMContentLoaded", track(trackid, callback, props));
     }
 
