@@ -22,25 +22,25 @@ simpleTrack = (function () {
         config = {},
         urlDomain = wn.location.protocol + '//' + wn.location.hostname + (wn.location.port ? ':' + wn.location.port : ''),
         url = urlDomain + '/api/tracker', //  URL Alias
-        sendDataInterval = 60000; //  1min interval time
+        sendDataInterval = 10000; //  1min interval time
 
 
-    //  function to set tracker cookie
-    function setTrackerCookie(name, value, expires) {
-        var expires = "";
-        if (expires) {
-            var date = new Date();
-            date.setTime(date.getTime() + (expires * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
-        }
-        dc.cookie = name + "=" + (value || "") + expires + "; path=/";
-    }
+    // //  function to set tracker cookie
+    // function setTrackerCookie(name, value, expires) {
+    //     var expires = "";
+    //     if (expires) {
+    //         var date = new Date();
+    //         date.setTime(date.getTime() + (expires * 24 * 60 * 60 * 1000));
+    //         expires = "; expires=" + date.toUTCString();
+    //     }
+    //     dc.cookie = name + "=" + (value || "") + expires + "; path=/";
+    // }
 
-    //  function to get tracker cookie
-    function getTrackerCookie(cookieName) {
-        var match = dc.cookie.match(RegExp('(?:^|;\\s*)' + cookieName + '=([^;]*)'));
-        return match ? match[1] : null;
-    }
+    // //  function to get tracker cookie
+    // function getTrackerCookie(cookieName) {
+    //     var match = dc.cookie.match(RegExp('(?:^|;\\s*)' + cookieName + '=([^;]*)'));
+    //     return match ? match[1] : null;
+    // }
 
 
     //  function to get referrer
@@ -67,11 +67,22 @@ simpleTrack = (function () {
     }
 
     //  function to print message to console
-    function logConsoleError(message) {
+    function logConsole(logType, logMessage) {
         // needed to write it this way for jslint
         var consoleType = typeof console;
-        if (consoleType !== 'undefined' && console && console.error) {
-            console.warn(message);
+        if (consoleType !== 'undefined' && console) {
+            switch (logType.toLowerCase()) {
+                case 'error':
+                    console.error(logMessage);
+                    break;
+
+                case 'warn':
+                    console.warn(logMessage);
+                    break;
+
+                default:
+                    console.log(logMessage);
+            }
         }
     }
 
@@ -198,7 +209,8 @@ simpleTrack = (function () {
 
         request.onreadystatechange = function () {
             if (request.readyState == 4 && request.status == 200) {
-                // console.log(request.responseText);
+                console.log(request.responseText);
+                log = [];
             }
         };
 
@@ -209,12 +221,12 @@ simpleTrack = (function () {
     }
 
     function track(id, callback) {
-        if (getTrackerCookie('tracker_session') === null) {
-            setTrackerCookie('tracker_session', randomUid(), 1);
-        }
+        // if (getTrackerCookie('tracker_session') === null) {
+        //     setTrackerCookie('tracker_session', id, 1);
+        // }
 
         config = {};
-        config.id = id;
+        // config.id = id;
         config.eventType = 'Loaded';
         config.url = wn.location.href;
         config.title = dc.title;
@@ -230,10 +242,18 @@ simpleTrack = (function () {
         config.time = Math.floor(Date.now() / 1000);
 
         // sendData(url, config);
-        log.push(config);
+        log.push({
+            id: id,
+            data: config
+        });
 
         setInterval(function () {
-            console.log(log);
+            if (log.length > 0) {
+                // console.log(log);
+                sendData(url, log);
+            } else {
+                logConsole('warn', 'No data to display');
+            }
         }, sendDataInterval);
 
         if (callback && typeof (callback) === "function") {
@@ -249,7 +269,7 @@ simpleTrack = (function () {
                 for (var z = 0; z < anchors.length; z++) {
                     anchors[z].onclick = function () {
                         config = {};
-                        config.id = trackid;
+                        // config.id = trackid;
                         config.eventType = wn.event.type;
                         config.url = isAbsoluteRelative(this.href);
                         config.isExternal = checkForExternalLinks(isAbsoluteRelative(this.href));
@@ -260,14 +280,17 @@ simpleTrack = (function () {
                         config.timing = getPerformanceTiming();
                         config.time = Math.floor(Date.now() / 1000);
 
-                        log.push(config);
+                        log.push({
+                            id: trackid,
+                            data: config
+                        });
                     }
                 }
             }
 
             //  check if trackForm is enabled or not
             if (props.trackForm) {
-                
+
             }
         }
 

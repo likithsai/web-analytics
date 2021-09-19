@@ -15,20 +15,24 @@ class CreateTrackerModelsTable extends Migration
     {
         Schema::create('tracker_models', function (Blueprint $table) {
             $table->increments('tracker_id');
-            $table->string('tracker_ip');
-            $table->string('tracker_tid');
-            $table->string('tracker_url');
-            $table->string('tracker_title');
-            $table->string('tracker_domain');
-            $table->string('tracker_charset');
-            $table->string('tracker_device');
-            $table->string('tracker_useragent');
-            $table->string('tracker_referrer');
-            $table->string('tracker_os');
-            $table->string('tracker_loadtime');
-            $table->string('tracker_internalLinks');
-            $table->string('tracker_lastModified');
-            $table->string('tracker_time');
+            $table->string('tracker_uid');
+            // $table->string('tracker_clientip');
+            $table->longText('tracker_data');
+
+            // $table->string('tracker_ip');
+            // $table->string('tracker_tid');
+            // $table->string('tracker_url');
+            // $table->string('tracker_title');
+            // $table->string('tracker_domain');
+            // $table->string('tracker_charset');
+            // $table->string('tracker_device');
+            // $table->string('tracker_useragent');
+            // $table->string('tracker_referrer');
+            // $table->string('tracker_os');
+            // $table->string('tracker_loadtime');
+            // $table->string('tracker_internalLinks');
+            // $table->string('tracker_lastModified');
+            // $table->string('tracker_time');
             $table->timestamps();
         });
     }
