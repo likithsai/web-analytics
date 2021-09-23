@@ -20,9 +20,10 @@ simpleTrack = (function () {
         nv = wn.navigator,
         sc = screen,
         config = {},
+        cf = {},
         urlDomain = wn.location.protocol + '//' + wn.location.hostname + (wn.location.port ? ':' + wn.location.port : ''),
         url = urlDomain + '/api/tracker', //  URL Alias
-        sendDataInterval = 10000; //  1min interval time
+        sendDataInterval = 60000; //  1min interval time
 
 
     // //  function to set tracker cookie
@@ -241,7 +242,6 @@ simpleTrack = (function () {
         config.lastModified = dc.lastModified;
         config.time = Math.floor(Date.now() / 1000);
 
-        // sendData(url, config);
         log.push({
             id: id,
             data: config
@@ -249,7 +249,6 @@ simpleTrack = (function () {
 
         setInterval(function () {
             if (log.length > 0) {
-                // console.log(log);
                 sendData(url, log);
             } else {
                 logConsole('warn', 'No data to display');
@@ -268,21 +267,21 @@ simpleTrack = (function () {
                 var anchors = document.getElementsByTagName('a');
                 for (var z = 0; z < anchors.length; z++) {
                     anchors[z].onclick = function () {
-                        config = {};
+                        cf = {};
                         // config.id = trackid;
-                        config.eventType = wn.event.type;
-                        config.url = isAbsoluteRelative(this.href);
-                        config.isExternal = checkForExternalLinks(isAbsoluteRelative(this.href));
-                        config.domain = dc.domain;
-                        config.device = getDevice(sc);
-                        config.userAgent = nv.userAgent;
-                        config.referrer = dc.referrer || '';
-                        config.timing = getPerformanceTiming();
-                        config.time = Math.floor(Date.now() / 1000);
+                        cf.eventType = wn.event.type;
+                        cf.url = isAbsoluteRelative(this.href);
+                        cf.isExternal = checkForExternalLinks(isAbsoluteRelative(this.href));
+                        cf.domain = dc.domain;
+                        cf.device = getDevice(sc);
+                        cf.userAgent = nv.userAgent;
+                        cf.referrer = dc.referrer || '';
+                        cf.timing = getPerformanceTiming();
+                        cf.time = Math.floor(Date.now() / 1000);
 
                         log.push({
                             id: trackid,
-                            data: config
+                            data: cf
                         });
                     }
                 }
