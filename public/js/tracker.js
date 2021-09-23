@@ -23,7 +23,7 @@ simpleTrack = (function () {
         cf = {},
         urlDomain = wn.location.protocol + '//' + wn.location.hostname + (wn.location.port ? ':' + wn.location.port : ''),
         url = urlDomain + '/api/tracker', //  URL Alias
-        sendDataInterval = 60000; //  1min interval time
+        sendDataInterval = 10000; //  1min interval time
 
 
     // //  function to set tracker cookie
